@@ -3,20 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:task_promina/core/services/cache_helper.dart';
+import 'package:task_promina/core/services/dependancy_injection.dart';
 import 'package:task_promina/core/utils/components.dart';
 import 'package:task_promina/core/utils/constants_keys.dart';
+import 'package:task_promina/persentation/controllers/auth_cubit/auth_cubit.dart';
 import 'package:task_promina/persentation/controllers/upload_image_cubit/upload_image_cubit.dart';
 import 'package:task_promina/persentation/screens/login_screen.dart';
 import 'package:task_promina/persentation/widgets/custom_image_container.dart';
 
-class UploadImageScreen extends StatefulWidget {
+class UploadImageScreen extends StatelessWidget {
   const UploadImageScreen({super.key});
 
-  @override
-  State<UploadImageScreen> createState() => _UploadImageScreenState();
-}
-
-class _UploadImageScreenState extends State<UploadImageScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<UploadImageCubit, UploadImageState>(
@@ -37,7 +34,7 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Welcome \n  ${UploadImageCubit.getCubit(context).user!.userData.name}",
+                          "Welcome\n${UploadImageCubit.getCubit(context).user!.userData.name}",
                           style: TextStyle(
                               fontSize: 32.sp,
                               fontWeight: FontWeight.w300,
@@ -60,8 +57,11 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
                       TextButton.icon(
                           onPressed: () {
                             CacheHelper.removeData(key: ConstantsKeys.token);
-                            context.goToAndKillLastWidget(screen:const LoginScreen()) ;
-                                                     },
+                            context.goToAndKillLastWidget(
+                                screen: BlocProvider(
+                                    create: (context) => sl<AuthCubit>(),
+                                    child: const LoginScreen()));
+                          },
                           icon: DecoratedBox(
                               decoration: BoxDecoration(
                                   color: Colors.red,
@@ -93,10 +93,11 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
                                 title: Column(children: [
                                   TextButton.icon(
                                       onPressed: () {
-                                          UploadImageCubit.getCubit(context)
-                                              .getimage(
-                                                  source: ImageSource.gallery);
-                                                  ctx.goBack();},
+                                        UploadImageCubit.getCubit(context)
+                                            .getimage(
+                                                source: ImageSource.gallery);
+                                        ctx.goBack();
+                                      },
                                       icon: const Icon(
                                         Icons.image,
                                         color: Colors.purple,
@@ -106,8 +107,8 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(20)),
-                                          backgroundColor:
-                                              const Color.fromRGBO(239, 216, 249, 1),
+                                          backgroundColor: const Color.fromRGBO(
+                                              239, 216, 249, 1),
                                           // foregroundColor: Colors.white,
                                           fixedSize: Size(184.w, 65.h)),
                                       label: Text(
@@ -123,11 +124,11 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
                                   ),
                                   TextButton.icon(
                                       onPressed: () {
-                                          UploadImageCubit.getCubit(context)
-                                              .getimage(
-                                                  source: ImageSource.camera);
-                                                  ctx.goBack();
-                                                  },
+                                        UploadImageCubit.getCubit(context)
+                                            .getimage(
+                                                source: ImageSource.camera);
+                                        ctx.goBack();
+                                      },
                                       icon: const Icon(
                                         Icons.camera,
                                         color: Colors.purple,
@@ -137,8 +138,8 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(20)),
-                                          backgroundColor:
-                                              const Color.fromRGBO(235, 246, 255, 1),
+                                          backgroundColor: const Color.fromRGBO(
+                                              235, 246, 255, 1),
                                           // foregroundColor: Colors.white,
                                           fixedSize: Size(184.w, 65.h)),
                                       label: Text(
@@ -181,29 +182,37 @@ class _UploadImageScreenState extends State<UploadImageScreen> {
                     height: 35.h,
                   ),
                   Expanded(
-                    child:UploadImageCubit.getCubit(context).images.isEmpty?Column(
-                      mainAxisAlignment:MainAxisAlignment.center,
-                      children:[
-                        const Icon(Icons.image_search_rounded,size:50,color:Colors.grey),
-                      Text(
-                            "There are no photos to display",
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.w400,
-                            )), ]
-                    ) :GridView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w),
-                      itemCount: UploadImageCubit.getCubit(context).images.length,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 15.h,
-                        crossAxisSpacing: 15.w,
-                      ),
-                      itemBuilder: (context, index) {
-                        return CustomeImageContainer(image: UploadImageCubit.getCubit(context).images[index],);
-                      },
-                    ),
+                    child: UploadImageCubit.getCubit(context).images.isEmpty
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                                const Icon(Icons.image_search_rounded,
+                                    size: 50, color: Colors.grey),
+                                Text("There are no photos to display",
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.w400,
+                                    )),
+                              ])
+                        : GridView.builder(
+                            padding: EdgeInsets.symmetric(horizontal: 12.w),
+                            itemCount: UploadImageCubit.getCubit(context)
+                                .images
+                                .length,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 15.h,
+                              crossAxisSpacing: 15.w,
+                            ),
+                            itemBuilder: (context, index) {
+                              return CustomeImageContainer(
+                                image: UploadImageCubit.getCubit(context)
+                                    .images[index],
+                              );
+                            },
+                          ),
                   ),
                 ],
               ),
